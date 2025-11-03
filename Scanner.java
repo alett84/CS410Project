@@ -6,7 +6,7 @@ import java.util.*;
   CS410 – Phase 1: Scanner
   Minimal C-like Dialect
 
-  Authors: Kumail Abbas ,
+  Authors: Kumail Abbas, Aidan Lett
   Reviewer: 
 
 */
@@ -14,7 +14,8 @@ import java.util.*;
 public class Scanner {
 
     // TOKEN MODEL 
-    enum TokenType {
+    enum TokenType 
+    {
         // keywords & identifiers
         KEYWORD, IDENTIFIER,
         // literals
@@ -27,18 +28,21 @@ public class Scanner {
         EOF, ERROR
     }
 
-    static class Token {
+    static class Token 
+    {
         final TokenType type;
         final String lexeme;
         final int line;
         final int col;
-        Token(TokenType type, String lexeme, int line, int col) {
+        Token(TokenType type, String lexeme, int line, int col) 
+        {
             this.type = type;
             this.lexeme = lexeme;
             this.line = line;
             this.col = col;
         }
-        @Override public String toString() {
+        @Override public String toString() 
+        {
             switch (type) {
                 case IDENTIFIER, KEYWORD, INT_LITERAL, FLOAT_LITERAL, CHAR_LITERAL:
                     return type + "\t" + lexeme;
@@ -104,7 +108,8 @@ public class Scanner {
                 "for", "while", "if", "else"
         ));
 
-        ScannerEngine(Reader reader) {
+        ScannerEngine(Reader reader) 
+        {
             this.in = new PushbackReader(new BufferedReader(reader), 4);
             buildTransitions();
         }
@@ -145,8 +150,10 @@ public class Scanner {
         }
 
         // Accepting states
-        private boolean accepting(int state) {
-            return switch (state) {
+        private boolean accepting(int state) 
+        {
+            return switch (state) 
+            {
                 case S_ID, S_INT, S_FLOAT, S_CHAR,
                      S_OP_EQ, S_OP_REL, S_OP_BANG, S_OP_PMSS,
                      S_LPAREN, S_RPAREN, S_SEMI, S_LBRACE, S_RBRACE, S_COMMA,
@@ -195,13 +202,15 @@ public class Scanner {
         }
 
         // I/O helpers
-        private int read() throws IOException {
+        private int read() throws IOException 
+        {
             int ch = in.read();
             if (ch == -1) { deliveredEOF = true; return -1; }
             if (ch == '\n') { line++; col = 0; } else { col++; }
             return ch;
         }
-        private void unread(int ch) throws IOException {
+        private void unread(int ch) throws IOException 
+        {
             if (ch == -1) return;
             in.unread(ch);
             if (ch == '\n') { line--; /* best effort */ }

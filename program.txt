@@ -1,0 +1,6 @@
+label L1;
+x = 3 + 4 * 2;
+if (x >= 10) goto L1;
+y = -x + 'A';
+goto L2;
+label L2;
