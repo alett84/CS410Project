@@ -10,6 +10,7 @@ import java.util.*;
 
 public class Parser {
 
+    
     //Token model & source
     enum TokenType 
     {
@@ -28,6 +29,7 @@ public class Parser {
         // special
         EOF, ERROR
     }
+
 
     static class Token 
     {
@@ -54,6 +56,7 @@ public class Parser {
         }
     }
 
+
     interface TokenSource 
     {
         Token peek() throws IOException;
@@ -72,11 +75,13 @@ static class ScannerAdapter implements TokenSource
         this.eng = new Scanner.ScannerEngine(r);
     }
 
+
     @Override public Token peek() throws IOException 
     {
         if (buffered == null) buffered = eng.nextToken();
         return convert(buffered);
     }
+
 
     @Override public Token next() throws IOException 
     {
@@ -85,6 +90,7 @@ static class ScannerAdapter implements TokenSource
         return t;
     }
 
+
     // Scanner.Token -> Parser.Token
     private Token convert(Scanner.Token st) 
     {
@@ -92,6 +98,7 @@ static class ScannerAdapter implements TokenSource
         String lex = mapLexeme(st.type, st.lexeme);
         return new Token(tt, lex, st.line, st.col);
     }
+
 
     // TokenType mapping between scanner and parser
     private TokenType mapType(Scanner.TokenType t, String lexeme) 
@@ -137,6 +144,7 @@ static class ScannerAdapter implements TokenSource
         return TokenType.ERROR;
     }
 
+
     // Convert char literals to an integer lexeme so expressions can use them
     private String mapLexeme(Scanner.TokenType t, String lexeme) 
     {
@@ -172,8 +180,8 @@ static class ScannerAdapter implements TokenSource
 
 
     // Atom model
-
     enum OpCode { ADD, SUB, MUL, DIV, JMP, NEG, LBL, TST, MOV }
+
 
     static class Atom 
     {
@@ -217,8 +225,8 @@ static class ScannerAdapter implements TokenSource
         private static String nv(String s) { return s == null ? "" : s; }
     }
 
-    // Parser
 
+    // Parser
     static class RDParser 
     { 
         private final TokenSource ts;
@@ -294,6 +302,7 @@ static class ScannerAdapter implements TokenSource
             code.add(new Atom(OpCode.MOV, val, null, lhs));
         }
 
+
         // conditions 
         static class Cond 
         {
@@ -307,6 +316,7 @@ static class ScannerAdapter implements TokenSource
                 cmpCode=c;
             } 
         }
+
 
         private Cond parseCondition() throws IOException 
         {
@@ -328,8 +338,8 @@ static class ScannerAdapter implements TokenSource
             return new Cond(left, right, code);
         }
 
-        // Expressions
 
+        // Expressions
         private String parseExpr() throws IOException 
         {
             String left = parseTerm();
@@ -345,6 +355,8 @@ static class ScannerAdapter implements TokenSource
 
             return left;
         }
+
+
         private String parseTerm() throws IOException 
         {
             String left = parseFactor();
@@ -360,6 +372,8 @@ static class ScannerAdapter implements TokenSource
 
             return left;
         }
+
+
         private String parseFactor() throws IOException 
         {
             Token t = ts.peek();
@@ -373,17 +387,20 @@ static class ScannerAdapter implements TokenSource
             }
         }
 
+
         // helpers
         private String newTemp() 
         { 
             return "t" + (++tempCounter); 
         }
 
+
         private boolean isKeyword(String k) throws IOException 
         {
             Token t = ts.peek();
             return (t.type == TokenType.KEYWORD || t.type == TokenType.IDENTIFIER) && k.equals(t.lexeme);
         }
+
 
         private Token expect(TokenType type, String human) throws IOException 
         {
@@ -393,18 +410,22 @@ static class ScannerAdapter implements TokenSource
             return t;
         }
 
+
         private RuntimeException error(String msg) throws IOException 
         {
             return errorAt(ts.peek(), msg); 
         }
+
+
         private RuntimeException errorAt(Token t, String msg) 
         {
             return new RuntimeException("Parse error at "+t.line+":"+t.col+": "+msg); 
         }
     }
 
-    // Main
 
+
+    // Main
     public static void main(String[] args) throws Exception 
     {
         Reader reader = (args.length > 0)
