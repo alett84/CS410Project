@@ -13,8 +13,8 @@ import java.util.Map;
 
 /*
   CS410 – Phase 3: Code Generator
-  Authors: Aidan Lett
-  Reviewer: 
+  Authors: Aidan Lett, Kumail Abbas
+  Reviewer: Julia
 
 */
 public class CodeGenerator {
@@ -54,13 +54,13 @@ public class CodeGenerator {
     }
 
     // Symbol bookkeeping
-    private final Map<String, Integer> memoryMap = new HashMap<>();
-    private final Map<String, Integer> regMap = new HashMap<>();
-    private int nextMem = 0;
-    private int nextReg = 0;
+private final Map<String, Integer> memoryMap = new HashMap<>();
+private final Map<String, Integer> regMap = new HashMap<>();
+private int nextMem = 0;
+private int nextReg = 0;
 
-    private final Map<String, Integer> labelToAddr = new HashMap<>();
-
+// Use Phase 3B label table for instruction addresses
+private final LabelTable labelTable = new LabelTable();
     // Public entrypoint
     public static void main(String[] args) throws Exception {
         String inputPath = null;
@@ -162,17 +162,29 @@ public class CodeGenerator {
         return (s == null || s.isEmpty()) ? null : s;
     }
 
-    // First pass: compute instruction address per label
-    private void computeLabelAddresses(List<Atom> atoms) {
-        int pc = 0;
-        for (Atom a : atoms) {
-            if ("LBL".equals(a.op)) {
-                if (a.dest != null) labelToAddr.put(a.dest, pc);
-                continue;
+    // First pass (Part C): use LabelTable to compute instruction address per label
+private void computeLabelAddresses(List<Atom> atoms) {
+    // Start fresh for each program
+    labelTable.reset();
+
+    for (Atom a : atoms) {
+        if ("LBL".equals(a.op)) {
+            // Record label at current instruction address
+            if (a.dest != null && !a.dest.isEmpty()) {
+                labelTable.addLabel(a.dest, labelTable.getCurrentAddress());
             }
-            pc += instructionCost(a);
+            // Do NOT advance address for a pure label
+        } else {
+            // This atom will emit instructionCost(a) machine instructions
+            int cost = instructionCost(a);
+            if (cost > 0) {
+                labelTable.incrementAddress(cost);
+            }
         }
     }
+
+    labelTable.markFirstPassComplete();
+}
 
     private int instructionCost(Atom a) {
         switch (a.op) {
@@ -277,9 +289,14 @@ public class CodeGenerator {
     }
 
     private int resolveLabel(String label) {
-        if (label == null) return 0;
-        Integer addr = labelToAddr.get(label);
-        return addr == null ? 0 : addr;
+        if (label == null || label.isEmpty()) return 0;
+    
+        Integer addr = labelTable.getAddress(label);
+        if (addr == null) {
+            // throw new IllegalArgumentException("Undefined label: " + label);
+            return 0;
+        }
+        return addr;
     }
 
     private int opCodeFor(String op) {
